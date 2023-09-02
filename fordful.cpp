@@ -1,17 +1,17 @@
 #include <iostream>
 #include <queue>
-#include <string.h>
+#include <cstring> 
 #include <fstream>
 #include <mpi.h>
 
 using namespace std;
 
-#define V 1632405 
+#define V 1632405
 
-bool bfs(int rGraph[V][V], int s, int t, int parent[], int rank)
+bool bfs(int** rGraph, int s, int t, int* parent, int rank)
 {
-    bool visited[V];
-    memset(visited, 0, sizeof(visited));
+    bool* visited = new bool[V];
+    memset(visited, 0, sizeof(bool) * V);
 
     queue<int> q;
     if (rank == 0) {
@@ -28,36 +28,38 @@ bool bfs(int rGraph[V][V], int s, int t, int parent[], int rank)
             if (visited[v] == false && rGraph[u][v] > 0) {
                 if (v == t) {
                     parent[v] = u;
+                    delete[] visited; 
                     return true;
                 }
                 if (rank == 0) {
                     q.push(v);
                     parent[v] = u;
                     visited[v] = true;
-                } else {
+                }
+                else {
                     MPI_Recv(&rGraph[v][u], 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 }
             }
         }
     }
 
+    delete[] visited; 
     return false;
 }
 
-int fordFulkerson(int graph[V][V], int s, int t, int rank)
+int fordFulkerson(int** graph, int s, int t, int rank)
 {
-
-        int u, v;
-    int rGraph[V][V];
-    int parent[V];
-
+    int u, v;
+    int** rGraph = new int*[V];
     for (u = 0; u < V; u++) {
+        rGraph[u] = new int[V];
         for (v = 0; v < V; v++) {
             rGraph[u][v] = graph[u][v];
         }
     }
 
-    memset(parent, 0, sizeof(parent));
+    int* parent = new int[V];
+    memset(parent, 0, sizeof(int) * V);
 
     int max_flow = 0;
 
@@ -69,7 +71,8 @@ int fordFulkerson(int graph[V][V], int s, int t, int rank)
             if (rank == 0) {
                 rGraph[u][v] -= path_flow;
                 rGraph[v][u] += path_flow;
-            } else {
+            }
+            else {
                 MPI_Recv(&path_flow, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             }
         }
@@ -77,9 +80,14 @@ int fordFulkerson(int graph[V][V], int s, int t, int rank)
         max_flow += path_flow;
     }
 
+    for (u = 0; u < V; u++) {
+        delete[] rGraph[u];
+    }
+    delete[] rGraph;
+    delete[] parent;
+
     return max_flow;
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -100,10 +108,15 @@ int main(int argc, char* argv[])
     string inputFile = argv[1];
     ifstream file(inputFile);
 
-    int source = 0; 
-    int sink = 1632404; 
+    int source = 0;
+    int sink = 1632404;
 
-    int graph[V][V] = {0};
+    int** graph = new int*[V];
+    for (int i = 0; i < V; i++) {
+        graph[i] = new int[V];
+        memset(graph[i], 0, sizeof(int) * V);
+    }
+
     int from, to;
 
     while (file >> from >> to) {
@@ -113,9 +126,15 @@ int main(int argc, char* argv[])
     if (rank == 0) {
         int max_flow = fordFulkerson(graph, source, sink, rank);
         cout << "The maximum possible flow is " << max_flow << endl;
-    } else {
+    }
+    else {
         fordFulkerson(graph, source, sink, rank);
     }
+
+    for (int i = 0; i < V; i++) {
+        delete[] graph[i];
+    }
+    delete[] graph;
 
     MPI_Finalize();
 
