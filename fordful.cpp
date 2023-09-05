@@ -72,6 +72,7 @@ int fordFulkerson(int** graph, int s, int t, int rank)
             if (rank == 0) {
                 rGraph[u][v] -= path_flow;
                 rGraph[v][u] += path_flow;
+                MPI_Send(&path_flow, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
             }
             else {
                 MPI_Recv(&path_flow, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
