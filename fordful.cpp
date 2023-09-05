@@ -35,6 +35,7 @@ bool bfs(int** rGraph, int s, int t, int* parent, int rank)
                     q.push(v);
                     parent[v] = u;
                     visited[v] = true;
+                    MPI_Send(&path_flow, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
                 }
                 else {
                     MPI_Recv(&rGraph[v][u], 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
