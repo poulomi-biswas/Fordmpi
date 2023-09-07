@@ -14,6 +14,7 @@ bool bfs(int** rGraph, int s, int t, int* parent, int rank)
     memset(visited, 0, sizeof(bool) * V);
 
     queue<int> q;
+    int path_flow=0;
     if (rank == 0) {
         q.push(s);
         visited[s] = true;
@@ -35,10 +36,11 @@ bool bfs(int** rGraph, int s, int t, int* parent, int rank)
                     q.push(v);
                     parent[v] = u;
                     visited[v] = true;
+                    path_flow=1;
                     MPI_Send(&path_flow, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
                 }
                 else {
-                    MPI_Recv(&rGraph[v][u], 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    MPI_Recv(&path_flow, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 }
             }
         }
