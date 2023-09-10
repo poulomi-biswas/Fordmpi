@@ -96,12 +96,17 @@ int fordFulkerson(int** graph, int s, int t, int rank)
 }
 
 int main(int argc, char* argv[])
-{
-    MPI_Init(&argc, &argv);
+{   printf("#Hi hello\n");
+     printf("#Debug 2\n");
+
+    MPI_Init(NULL,NULL);
+     printf("#DEBUG 1.5\n");
+
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    printf("DEBUG 2 After RANK AND SIZE\n");
 
     if (argc != 2) {
         if (rank == 0) {
