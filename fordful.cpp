@@ -1,8 +1,9 @@
+#include <mpi.h>
 #include <iostream>
 #include <queue>
 #include <cstring> 
 #include <fstream>
-#include <mpi.h>
+
 
 using namespace std;
 
